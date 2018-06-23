@@ -2,59 +2,74 @@ import React, { Component } from 'react';
 import * as d3 from "d3";
 
 import './barGraph.css';
+import './tooltip.css';
 
 class BarGraph extends Component {
 
 	constructor(props) {
 		super(props);
 
-		this.margin = { top: 20, right: 20, bottom: 20, left: 40 };
-		this.svgWidth = 500 - this.margin.left - this.margin.right;
-		this.svgHeight = 300 - this.margin.top - this.margin.bottom;
+		this.margin = { top: 40, right: 40, bottom: 60, left: 60 };
+		this.width = 500 - this.margin.left - this.margin.right;
+		this.height = 300 - this.margin.top - this.margin.bottom;
 
-		this.numBars = 20;
+		this.numBars = 24;
 		this.barPadding = 2;
-		this.barWidth = this.svgWidth / this.numBars;
+		this.barWidth = this.width / this.numBars;
 		this.rangeMax = 100;
 
 		this.state = {
 			data: this.randomData(this.numBars)
 		}
 
-		this.scaleY = d3.scaleLinear()
-			.domain([0, d3.max(this.state.data)])
-			.range([0, this.svgHeight]);
+		this.x = d3.scaleLinear()
+			.range([0, this.width]);
 
-		this.scaleYAxis = d3.scaleLinear()
-			.domain([0, d3.max(this.state.data)])
-			.range([this.svgHeight, 0]);
-
-		this.scaleXAxis = d3.scaleLinear()
-			.domain([0, this.numBars])
-			.range([0, this.svgWidth]);
+		this.y = d3.scaleLinear()
+			.range([this.height, 0]);
 	}
 
 	componentDidMount() {
 		this.svg = d3.select('.container').append("svg")
-			.attr("width", this.svgWidth + this.margin.left + this.margin.right)
-			.attr("height", this.svgHeight + this.margin.top + this.margin.bottom)
+			.attr("width", this.width + this.margin.left + this.margin.right)
+			.attr("height", this.height + this.margin.top + this.margin.bottom)
 			.attr("class", "bar-graph")
 			.append("g")
 			.attr("transform", "translate(" + this.margin.left + "," + this.margin.top + ")");
 
-		this.xAxis = d3.axisBottom(this.scaleXAxis)
-			.tickFormat((d) => { return d.toFixed(1) });
+		this.x.domain([0, this.numBars]);
+		this.y.domain([0, this.rangeMax]);
+		this.xAxis = d3.axisBottom(this.x);
+		this.yAxis = d3.axisLeft(this.y);
 
-		this.yAxis = d3.axisLeft(this.scaleYAxis)
-			.tickFormat((d) => { return (d).toFixed(0) });
+
+		// X Axix
+		this.svg.append("g")
+			.attr("class", "x axis")
+			.attr("transform", "translate(0, " + this.height + ")")
+			.call(this.xAxis);
+		
+		this.svg.append("text")
+			.attr("transform", "translate(" + (this.width/2) + ", " + (this.height + this.margin.top + 5) + ")")
+			.attr("class", "label-x")
+			.text("Time in Months");
+
+		// Y Axis
+		this.svg.append("g")
+			.attr("class", "y axis")
+			.call(this.yAxis);
+
+		this.svg.append("text")
+			.attr("transform", "rotate(-90)")
+			.attr("x", 0 - this.height/2)
+			.attr("y", 0 - this.margin.left/2 - 5)
+			.attr("class", "label-y")
+			.text("Price");
+
 
 		this.tooltip = d3.select("body")
 			.append("div")
-			.style("position", "absolute")
-			.style("z-index", "10")
-			.style("visibility", "hidden")
-			.style("background", "#000")
-			.style("color", "#FFF")
+			.attr("class", "tooltip")
 			.text("");
 
 		this.barGraph = this.svg.selectAll("rect")
@@ -62,19 +77,19 @@ class BarGraph extends Component {
 			.enter()
 			.append("rect")
 			.attr("y", (d) => {
-				return this.svgHeight - this.scaleY(d);
+				return this.y(d);
 			})
 			.attr("height", (d) => {
-				return this.scaleY(d);
+				return this.height - this.y(d);
 			})
 			.attr("width", this.barWidth - this.barPadding)
 			.attr("transform", (d, i) => {
-				let translate = [this.barWidth * i, 0];
+				let translate = [this.barWidth * i + 1, 0];
 				return "translate(" + translate + ")";
 			})
 			.attr("class", "bar1")
 			.on("mouseover", (d) => { 
-				this.tooltip.text(d);
+				this.tooltip.text(d.toFixed(2));
 				return this.tooltip.style("visibility", "visible");
 			})
 			.on("mousemove", () => {
@@ -84,31 +99,30 @@ class BarGraph extends Component {
 			.on("mouseout", () => {
 				return this.tooltip.style("visibility", "hidden");
 			});
-
-		this.svg.append("g")
-			.attr("transform", "translate(0, " + this.svgHeight + ")")
-			.attr("class", "x axis")
-			.call(this.xAxis);
-
-		this.svg.append("g")
-			.attr("class", "y axis")
-			.call(this.yAxis);
 	}
 
 	componentDidUpdate() {
+		// this.x.domain([0, this.numBars]);
+		// this.y.domain([0, this.rangeMax]);
+		// this.yAxis = d3.axisLeft(this.y);
+
 		this.svg.selectAll("rect")
 			.data(this.state.data);
-		
+
 		let transitionSvg = d3.select('svg').transition();
 
 		transitionSvg.selectAll("rect")
 			.duration(450)
 			.attr("y", (d) => {
-				return this.svgHeight - this.scaleY(d);
+				return this.y(d);
 			})
 			.attr("height", (d) => {
-				return this.scaleY(d);
+				return this.height - this.y(d);
 			});
+
+		// transitionSvg.select("y.axis")
+		// 	.duration(450)
+		// 	.call(this.yAxis);
 	}
 
 	randomData(length) {

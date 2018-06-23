@@ -1,0 +1,16 @@
+.tooltip {
+	position: absolute;
+	width: 70px;
+	height: 40px;
+
+	display: flex;
+	justify-content: center;
+	align-items: center;
+
+	z-index: 10;
+	visibility: hidden;
+	background-color: black;
+	color: #2AB858;
+
+	border: 1px solid grey;
+}

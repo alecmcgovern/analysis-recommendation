@@ -18,7 +18,7 @@
 }
 
 .bar-graph {	
-	background-color: grey;
+	background-color: #222222;
 	overflow: visible;
 
 	margin: 50px 30px 80px 30px;
@@ -26,6 +26,15 @@
 
 .bar1:hover {
 	fill: pink;
+}
+
+.axis path, .axis text, .axis line {
+	stroke: white;
+}
+
+.label-x, .label-y {
+	fill: white;
+	text-anchor: middle;
 }
 
 
@@ -61,7 +70,7 @@
 .sub-button {
   position: absolute;
   display: inline-block;
-  background-color:#0000FF;
+  background-color: #222222;
   color: rgba(255,255,255,0);
   width: 28px;
   height: 28px;
