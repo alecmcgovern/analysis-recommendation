@@ -34,21 +34,12 @@ class BarGraph extends Component {
 
 		this.numBars = 24;
 		this.barPadding = 2;
-		this.barWidth = this.width / this.numBars;
+		this.barWidth = (this.width / this.numBars) - this.barPadding;
 		this.rangeMax = 100;
 
 		this.state = {
 			dataColumns: this.randomData(this.numBars)
 		}
-
-		// this.x = d3.scaleLinear()
-		// 	.range([0, this.width]);
-
-		// this.y = d3.scaleLinear()
-		// 	.range([this.height, 0]);
-
-		// this.colorScale = d3.scaleOrdinal().domain(["buy", "hold", "sell"]).range(["#fcd88a", "#cf7c1c", "#93c464"]);
-		// this.colors = ["#fcd88a", "#cf7c1c", "#93c464"];
 	}
 
 	componentDidMount() {
@@ -61,8 +52,7 @@ class BarGraph extends Component {
 
 		this.x = d3.scaleBand()
 			.rangeRound([0, this.width])
-			.domain(dates)
-			.padding(.1);
+			.domain(dates);
 
 		this.y = d3.scaleLinear()
 			.rangeRound([this.height, 0]);
@@ -73,14 +63,14 @@ class BarGraph extends Component {
 			.offset(d3.stackOffsetNone);
 
 		this.redraw(this.randomDataNew());
-		// this.x.domain([0, this.numBars]);
-		// this.y.domain([0, this.rangeMax]);
-		this.xAxis = d3.axisBottom(this.x)
+
+		this.scaleXAxis = d3.scaleLinear()
+			.range([0, this.width])
+			.domain([0, this.numBars]);
+
+		this.xAxis = d3.axisBottom(this.scaleXAxis)
 			.tickFormat((d, i) => { return tickLabels[i]});
 		this.yAxis = d3.axisLeft(this.y);
-
-
-		// this.stack = d3.stack().keys(["buy", "hold", "sell"]);
 
 		// ToolTip
 		this.tooltip = d3.select("body")
@@ -122,17 +112,15 @@ class BarGraph extends Component {
 				.data(this.stack(data)[i], (d) => { return d.data.date + "-" + key});
 
 			bar.transition()
-				.attr("x", (d) => { return this.x(d.data.date); })
 				.attr("y", (d) => { return this.y(d[1]); })
 				.attr("height", (d) => { return this.y(d[0]) - this.y(d[1]); });
 
 			bar.enter().append("rect")
 				.attr("class", (d) => { return "bar bar-" + key; })
-				.attr("x", (d) => { return this.x(d.data.date); })
+				.attr("x", (d, i) => { return (this.barWidth + this.barPadding) * i + 1; })
 				.attr("y", (d) => { return this.y(d[1]); })
 				.attr("height", (d) => { return this.y(d[0]) - this.y(d[1]) })
-				.attr("width", this.x.bandwidth())
-				// .attr("fill", (d) => { return this.color(key); })
+				.attr("width", (d, i) => { return this.barWidth })
 				.on("mouseover", (d, i) => {
 					this.tooltip.text((d[1] - d[0]).toFixed(2));
 					return this.tooltip.style("visibility", "visible");
@@ -150,62 +138,7 @@ class BarGraph extends Component {
 	}
 
 	componentDidUpdate() {
-		// this.x.domain([0, this.numBars]);
-		// this.y.domain([0, this.rangeMax]);
-		// this.yAxis = d3.axisLeft(this.y);
 
-		// ["buy", "hold", "sell"].forEach((type, i) => {
-		// 	let bar = this.svg.selectAll("." + type)
-		// 		.data(this.stack(this.state.dataColumns)[i], (d) => {
-		// 			return d + "-" + type;
-		// 		});
-
-		// 	bar.transition()
-		// 		.attr("y", (d) => {
-		// 			return this.y(d[1])
-		// 		})
-		// 		.attr("height", (d) => {
-		// 			return this.y(d[0]) - this.y(d[1]);
-		// 		});
-
-		// 	bar.enter().append("rect")
-		// 		attr("class",)
-		// });
-
-
-
-
-
-
-
-
-
-
-
-		// this.groups = this.svg.selectAll("g.bar")
-		// 	.data(this.stack(this.state.dataColumns));
-
-		// this.rectangles = this.groups.selectAll("rect")
-		// 	.data((d, i) => {
-		// 		return d;
-		// 	});
-
-		// let transitionSvg = d3.selectAll('g.bar').transition()
-		// 	each();
-
-		// transitionSvg.selectAll("rect")
-		// 	.duration(450)
-		// 	.attr("y", (d) => {
-		// 		console.log(d[1]);
-		// 		return this.y(d[1]);
-		// 	})
-		// 	.attr("height", (d) => {
-		// 		return this.y(d[0]) - this.y(d[1]);
-		// 	});
-
-		// transitionSvg.select("y.axis")
-		// 	.duration(450)
-		// 	.call(this.yAxis);
 	}
 
 	randomDataNew() {
@@ -221,9 +154,6 @@ class BarGraph extends Component {
 			obj["buy"] = buy;
 			obj["hold"] = hold;
 			obj["sell"] = sell;
-			// nums.push(buy);
-			// nums.push(hold);
-			// nums.push(sell);
 
 			obj.sum = buy + hold + sell;
 
@@ -251,10 +181,6 @@ class BarGraph extends Component {
 
 	randomizeData() {
 		this.redraw(this.randomDataNew());
-		// let newData = this.randomData(this.numBars);
-		// this.setState({
-		// 	dataColumns: newData
-		// });
 	}
 
 	render() {

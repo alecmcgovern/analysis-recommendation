@@ -36,7 +36,7 @@
 	fill: #ff212c;
 }
 
-.bar-sell rect:hover, .bar-hold rect:hover, .bar-buy rect:hover {
+.bar-sell:hover, .bar-hold:hover, .bar-buy:hover {
 	fill: white;
 }
 
