@@ -24,8 +24,20 @@
 	margin: 50px 30px 80px 30px;
 }
 
-.bar1:hover {
-	fill: pink;
+.bar-buy {
+	fill: #2AB858;
+}
+
+.bar-hold {
+	fill: #fcdc74;
+}
+
+.bar-sell {
+	fill: #ff212c;
+}
+
+.bar-sell rect:hover, .bar-hold rect:hover, .bar-buy rect:hover {
+	fill: white;
 }
 
 .axis path, .axis text, .axis line {

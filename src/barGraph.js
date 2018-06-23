@@ -4,6 +4,25 @@ import * as d3 from "d3";
 import './barGraph.css';
 import './tooltip.css';
 
+const tickLabels = ['J','A','S','O','N','D','J','F','M','A','M','J']
+
+const dates = [
+	'Jul 1', 'Jul 15', 
+	'Aug 1', 'Aug 15', 
+	'Sep 1', 'Sep 15', 
+	'Oct 1', 'Oct 15',
+	'Nov 1', 'Nov 15', 
+	'Dec 1', 'Dec 15', 
+	'Jan 1', 'Jan 15', 
+	'Feb 1', 'Feb 15',
+	'Mar 1', 'Mar 15', 
+	'Apr 1', 'Apr 15', 
+	'May 1', 'May 15', 
+	'Jun 1', 'Jun 15',
+];
+
+const recTypes = ["buy", "hold", "sell"];
+
 class BarGraph extends Component {
 
 	constructor(props) {
@@ -19,14 +38,17 @@ class BarGraph extends Component {
 		this.rangeMax = 100;
 
 		this.state = {
-			data: this.randomData(this.numBars)
+			dataColumns: this.randomData(this.numBars)
 		}
 
-		this.x = d3.scaleLinear()
-			.range([0, this.width]);
+		// this.x = d3.scaleLinear()
+		// 	.range([0, this.width]);
 
-		this.y = d3.scaleLinear()
-			.range([this.height, 0]);
+		// this.y = d3.scaleLinear()
+		// 	.range([this.height, 0]);
+
+		// this.colorScale = d3.scaleOrdinal().domain(["buy", "hold", "sell"]).range(["#fcd88a", "#cf7c1c", "#93c464"]);
+		// this.colors = ["#fcd88a", "#cf7c1c", "#93c464"];
 	}
 
 	componentDidMount() {
@@ -37,13 +59,36 @@ class BarGraph extends Component {
 			.append("g")
 			.attr("transform", "translate(" + this.margin.left + "," + this.margin.top + ")");
 
-		this.x.domain([0, this.numBars]);
-		this.y.domain([0, this.rangeMax]);
-		this.xAxis = d3.axisBottom(this.x);
+		this.x = d3.scaleBand()
+			.rangeRound([0, this.width])
+			.domain(dates)
+			.padding(.1);
+
+		this.y = d3.scaleLinear()
+			.rangeRound([this.height, 0]);
+
+		this.stack = d3.stack()
+			.keys(recTypes)
+			.order(d3.stackOrderNone)
+			.offset(d3.stackOffsetNone);
+
+		this.redraw(this.randomDataNew());
+		// this.x.domain([0, this.numBars]);
+		// this.y.domain([0, this.rangeMax]);
+		this.xAxis = d3.axisBottom(this.x)
+			.tickFormat((d, i) => { return tickLabels[i]});
 		this.yAxis = d3.axisLeft(this.y);
 
 
-		// X Axix
+		// this.stack = d3.stack().keys(["buy", "hold", "sell"]);
+
+		// ToolTip
+		this.tooltip = d3.select("body")
+			.append("div")
+			.attr("class", "tooltip")
+			.text("");
+
+		// X Axis
 		this.svg.append("g")
 			.attr("class", "x axis")
 			.attr("transform", "translate(0, " + this.height + ")")
@@ -65,40 +110,43 @@ class BarGraph extends Component {
 			.attr("y", 0 - this.margin.left/2 - 5)
 			.attr("class", "label-y")
 			.text("Price");
+	}
+
+	redraw(data) {
+		console.log(data);
+		this.y.domain([0, Math.max.apply(Math, data.map((d) => { return d.sum }))]);
+
+		recTypes.forEach((key, i) => {
+
+			let bar = this.svg.selectAll(".bar-" + key)
+				.data(this.stack(data)[i], (d) => { return d.data.date + "-" + key});
+
+			bar.transition()
+				.attr("x", (d) => { return this.x(d.data.date); })
+				.attr("y", (d) => { return this.y(d[1]); })
+				.attr("height", (d) => { return this.y(d[0]) - this.y(d[1]); });
+
+			bar.enter().append("rect")
+				.attr("class", (d) => { return "bar bar-" + key; })
+				.attr("x", (d) => { return this.x(d.data.date); })
+				.attr("y", (d) => { return this.y(d[1]); })
+				.attr("height", (d) => { return this.y(d[0]) - this.y(d[1]) })
+				.attr("width", this.x.bandwidth())
+				// .attr("fill", (d) => { return this.color(key); })
+				.on("mouseover", (d, i) => {
+					this.tooltip.text((d[1] - d[0]).toFixed(2));
+					return this.tooltip.style("visibility", "visible");
+				})
+				.on("mousemove", () => {
+					return this.tooltip.style("top", (d3.event.pageY - 40) + "px")
+						.style("left", (d3.event.pageX + 10) + "px");
+				})
+				.on("mouseout", () => {
+					return this.tooltip.style("visibility", "hidden");
+				});
 
 
-		this.tooltip = d3.select("body")
-			.append("div")
-			.attr("class", "tooltip")
-			.text("");
-
-		this.barGraph = this.svg.selectAll("rect")
-			.data(this.state.data)
-			.enter()
-			.append("rect")
-			.attr("y", (d) => {
-				return this.y(d);
-			})
-			.attr("height", (d) => {
-				return this.height - this.y(d);
-			})
-			.attr("width", this.barWidth - this.barPadding)
-			.attr("transform", (d, i) => {
-				let translate = [this.barWidth * i + 1, 0];
-				return "translate(" + translate + ")";
-			})
-			.attr("class", "bar1")
-			.on("mouseover", (d) => { 
-				this.tooltip.text(d.toFixed(2));
-				return this.tooltip.style("visibility", "visible");
-			})
-			.on("mousemove", () => {
-				return this.tooltip.style("top", (d3.event.pageY - 10) + "px")
-					.style("left", (d3.event.pageX + 10) + "px");
-			})
-			.on("mouseout", () => {
-				return this.tooltip.style("visibility", "hidden");
-			});
+		});
 	}
 
 	componentDidUpdate() {
@@ -106,40 +154,107 @@ class BarGraph extends Component {
 		// this.y.domain([0, this.rangeMax]);
 		// this.yAxis = d3.axisLeft(this.y);
 
-		this.svg.selectAll("rect")
-			.data(this.state.data);
+		// ["buy", "hold", "sell"].forEach((type, i) => {
+		// 	let bar = this.svg.selectAll("." + type)
+		// 		.data(this.stack(this.state.dataColumns)[i], (d) => {
+		// 			return d + "-" + type;
+		// 		});
 
-		let transitionSvg = d3.select('svg').transition();
+		// 	bar.transition()
+		// 		.attr("y", (d) => {
+		// 			return this.y(d[1])
+		// 		})
+		// 		.attr("height", (d) => {
+		// 			return this.y(d[0]) - this.y(d[1]);
+		// 		});
 
-		transitionSvg.selectAll("rect")
-			.duration(450)
-			.attr("y", (d) => {
-				return this.y(d);
-			})
-			.attr("height", (d) => {
-				return this.height - this.y(d);
-			});
+		// 	bar.enter().append("rect")
+		// 		attr("class",)
+		// });
+
+
+
+
+
+
+
+
+
+
+
+		// this.groups = this.svg.selectAll("g.bar")
+		// 	.data(this.stack(this.state.dataColumns));
+
+		// this.rectangles = this.groups.selectAll("rect")
+		// 	.data((d, i) => {
+		// 		return d;
+		// 	});
+
+		// let transitionSvg = d3.selectAll('g.bar').transition()
+		// 	each();
+
+		// transitionSvg.selectAll("rect")
+		// 	.duration(450)
+		// 	.attr("y", (d) => {
+		// 		console.log(d[1]);
+		// 		return this.y(d[1]);
+		// 	})
+		// 	.attr("height", (d) => {
+		// 		return this.y(d[0]) - this.y(d[1]);
+		// 	});
 
 		// transitionSvg.select("y.axis")
 		// 	.duration(450)
 		// 	.call(this.yAxis);
 	}
 
+	randomDataNew() {
+		return dates.map((d) => {
+			let obj = {};
+			obj.date = d;
+			let nums = [];
+
+			let buy = Math.random()*100;
+			let hold = Math.random()*(100 - buy);
+			let sell = 100 - buy - hold;
+
+			obj["buy"] = buy;
+			obj["hold"] = hold;
+			obj["sell"] = sell;
+			// nums.push(buy);
+			// nums.push(hold);
+			// nums.push(sell);
+
+			obj.sum = buy + hold + sell;
+
+			return obj;
+		})
+	}
+
 	randomData(length) {
-		let values = [];
+		let columns = [];
 
 		for (let i = 0; i < length; i++) {
-			values[i] = Math.random()*100;
+			let values = {}
+			let buy = Math.random()*100;
+			let hold = Math.random()*(100 - buy);
+			let sell = 100 - buy - hold;
+			values["buy"] = buy;
+			values["hold"] = hold;	
+			values["sell"] = sell;
+
+			columns[i] = values;
 		}
 
-		return values;
+		return columns;
 	}
 
 	randomizeData() {
-		let newData = this.randomData(this.numBars);
-		this.setState({
-			data: newData
-		});
+		this.redraw(this.randomDataNew());
+		// let newData = this.randomData(this.numBars);
+		// this.setState({
+		// 	dataColumns: newData
+		// });
 	}
 
 	render() {
