@@ -1,6 +1,6 @@
 .tooltip {
 	position: absolute;
-	width: 200px;
+	width: 170px;
 	height: 80px;
 
 	/*padding-left: 15px;*/
@@ -12,8 +12,9 @@
 	z-index: 10;
 	visibility: hidden;
 	background-color: black;
-	color: #2AB858;
+	/*color: #2AB858;*/
+	color: white;
 
-	border: 1px solid grey;
+	border: 1px solid white;
 	white-space: pre-line;
 }

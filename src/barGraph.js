@@ -29,8 +29,14 @@ class BarGraph extends Component {
 		super(props);
 
 		this.margin = { top: 40, right: 40, bottom: 60, left: 60 };
-		this.width = 500 - this.margin.left - this.margin.right;
-		this.height = 300 - this.margin.top - this.margin.bottom;
+
+		if (window.innerWidth > 615) {
+			this.width = 500 - this.margin.left - this.margin.right;
+			this.height = 300 - this.margin.top - this.margin.bottom;
+		} else {
+			this.width = 400 - this.margin.left - this.margin.right;
+			this.height = 240 - this.margin.top - this.margin.bottom;
+		}
 
 		this.numBars = 24;
 		this.barPadding = 2;
@@ -116,9 +122,15 @@ class BarGraph extends Component {
 			.x((d, i) => { return (this.barWidth + this.barPadding) * i + 1; })
 			.y((d) => { return this.yLine(d.y); });
 
-		this.redrawBars(this.randomDataBars());
-		this.redrawLine(this.randomDataLines("real"), "real");
-		this.redrawLine(this.randomDataLines("expected"), "expected");
+		this.randomDataBars();
+		this.randomDataLines("real");
+		this.randomDataLines("expected");
+	}
+
+	componentDidUpdate() {
+		this.redrawBars(this.state.dataBars);
+		this.redrawLine(this.state.priceReal, "real");
+		this.redrawLine(this.state.priceExpected, "expected");
 	}
 
 	redrawBars(data) {
@@ -225,9 +237,9 @@ class BarGraph extends Component {
 	}
 
 	randomizeData() {
-		this.redrawBars(this.randomDataBars());
-		this.redrawLine(this.randomDataLines("real"), "real");
-		this.redrawLine(this.randomDataLines("expected"), "expected");
+		this.randomDataBars();
+		this.randomDataLines("real");
+		this.randomDataLines("expected");
 	}
 
 	render() {
