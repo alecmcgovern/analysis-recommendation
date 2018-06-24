@@ -11,10 +11,18 @@
 }
 
 .App-header {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+
   background-color: #222;
   height: 80px;
   padding: 20px;
   color: white;
+}
+
+.title {
+  font-size: 3em;
 }
 
 .App-title {

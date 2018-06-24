@@ -1,7 +1,9 @@
 .tooltip {
 	position: absolute;
-	width: 70px;
-	height: 40px;
+	width: 200px;
+	height: 80px;
+
+	/*padding-left: 15px;*/
 
 	display: flex;
 	justify-content: center;
@@ -13,4 +15,5 @@
 	color: #2AB858;
 
 	border: 1px solid grey;
+	white-space: pre-line;
 }

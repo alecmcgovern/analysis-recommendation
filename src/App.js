@@ -1,8 +1,7 @@
 import React, { Component } from 'react';
-import logo from './logo.svg';
 
 import BarGraph from './barGraph.js';
-import CircleGraph from './circleGraph.js';
+import title from './assets/title.svg';
 
 import './App.css';
 
@@ -11,11 +10,10 @@ class App extends Component {
 		return (
 			<div className="App">
 				<header className="App-header">
-					<img src={logo} className="App-logo" alt="logo" />
+					<div className="title">Analysis Recommendation</div>
 				</header>
 				<div className="app-body">
 					<BarGraph />
-					<CircleGraph />
 				</div>
 			</div>
 		);
