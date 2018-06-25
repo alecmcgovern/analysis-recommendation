@@ -265,7 +265,7 @@ class BarGraph extends Component {
 					<div className="bar-legend-container">
 						<div className="color-container">
 							<div className="color-box blue"></div>
-							<div>buy</div>
+							<div>sell</div>
 						</div>
 						<div className="color-container">
 							<div className="color-box white"></div>
@@ -273,7 +273,7 @@ class BarGraph extends Component {
 						</div>
 						<div className="color-container">
 							<div className="color-box green"></div>
-							<div>sell</div>
+							<div>buy</div>
 						</div>
 					</div>
 				</div>
